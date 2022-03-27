@@ -22,7 +22,7 @@ kind: CronJob
 metadata:
   name: deployment-restart
 spec:
-  schedule: '*/2 * * * *' # every 2 minutes
+  schedule: '*/3 * * * *' # every 3 minutes
   jobTemplate:
     spec:
       template:
