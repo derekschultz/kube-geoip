@@ -1,28 +1,44 @@
 from fastapi import FastAPI
-import ipaddress
 import geoip2.database
+import ipaddress
+import os
+import requests
+import tarfile
 
-### Database URL
-# https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN&license_key=YOUR_LICENSE_KEY&suffix=tar.gz
-#
+def download_db():
+    print("Downloading latest database...")
+    url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=CYYMJOmUj1Ai3BK0&suffix=tar.gz"
+    file = "GeoLite2-City.tar.gz"
+
+    response = requests.get(url)
+    # print(response.status_code)
+    with open(file, 'wb') as f:
+        f.write(response.content)
+    f.close()
+
+    with open('GeoLite2-City.mmdb', 'wb') as f:
+        with tarfile.open(file, 'r:gz') as tar:
+            for member in tar.getmembers():
+                if os.path.splitext(member.name)[1] == '.mmdb':
+                    r = tar.extractfile(member)
+                    if r is not None:
+                        content = r.read()
+                    r.close
+                    f.write(content)
+        tar.close()
+    f.close()
+
+# Call this before we start the API
+download_db()
 
 app = FastAPI()
 
-    ### pseudocode ###
-    # validate string is an ip address
-    # lookup ip address in geoip2 db
-    # fetch latitude and longitude
 @app.get("/lookup/{ip_addr}")
 async def lookup_ip(ip_addr: str):
     if validate_ip_address(ip_addr):
-        # The ASN and Country DBs do not have a response.location, so we're using City
         with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
             response = reader.city(ip_addr)
         return { "latitude": response.location.latitude, "longitude": response.location.longitude }
-
-    # if validate_ip_address(ip_addr):
-    #     print("Good")
-    #     return { "latitude": response.location.latitude, "longitude": response.location.longitude }
 
 def validate_ip_address(address):
     try:
