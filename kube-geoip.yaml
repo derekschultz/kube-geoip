@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: geoip
+spec:
+  containers:
+  - name: geoip
+    image: bobloblaw/geoip
+    ports:
+    - containerPort: 8000
