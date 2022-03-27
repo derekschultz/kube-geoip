@@ -11,22 +11,24 @@ def download_db():
     file = "GeoLite2-City.tar.gz"
 
     response = requests.get(url)
-    # print(response.status_code)
-    with open(file, 'wb') as f:
-        f.write(response.content)
-    f.close()
+    if response.status_code == 200:
+        with open(file, 'wb') as f:
+            f.write(response.content)
+        f.close()
 
-    with open('GeoLite2-City.mmdb', 'wb') as f:
-        with tarfile.open(file, 'r:gz') as tar:
-            for member in tar.getmembers():
-                if os.path.splitext(member.name)[1] == '.mmdb':
-                    r = tar.extractfile(member)
-                    if r is not None:
-                        content = r.read()
-                    r.close
-                    f.write(content)
-        tar.close()
-    f.close()
+        with open('GeoLite2-City.mmdb', 'wb') as f:
+            with tarfile.open(file, 'r:gz') as tar:
+                for member in tar.getmembers():
+                    if os.path.splitext(member.name)[1] == '.mmdb':
+                        r = tar.extractfile(member)
+                        if r is not None:
+                            content = r.read()
+                        r.close
+                        f.write(content)
+            tar.close()
+        f.close()
+    else:
+        print('Error downloading GeoLite database. Status code {}'.format(response.status_code))
 
 # Call this before we start the API
 download_db()
