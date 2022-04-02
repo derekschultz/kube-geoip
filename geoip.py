@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import geoip2.database
 import ipaddress
 import os
@@ -37,10 +37,15 @@ app = FastAPI()
 
 @app.get("/lookup/{ip_addr}")
 async def lookup_ip(ip_addr: str):
-    if validate_ip_address(ip_addr):
+    # if validate_ip_address(ip_addr):
         with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
-            response = reader.city(ip_addr)
-        return { "latitude": response.location.latitude, "longitude": response.location.longitude }
+            try:
+                response = reader.city(ip_addr)
+                return { "latitude": response.location.latitude, "longitude": response.location.longitude }
+            except ValueError:
+                raise HTTPException(status_code=500, detail=" does not appear to be an IPv4 or IPv6 address")
+            except geoip2.errors.AddressNotFoundError:
+                raise HTTPException(status_code=404, detail="address is not in the database")
 
 def validate_ip_address(address):
     try:
