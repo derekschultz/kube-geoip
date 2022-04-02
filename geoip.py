@@ -43,7 +43,7 @@ async def lookup_ip(ip_addr: str):
                 response = reader.city(ip_addr)
                 return { "latitude": response.location.latitude, "longitude": response.location.longitude }
             except ValueError:
-                raise HTTPException(status_code=500, detail=" does not appear to be an IPv4 or IPv6 address")
+                raise HTTPException(status_code=500, detail="does not appear to be an IPv4 or IPv6 address")
             except geoip2.errors.AddressNotFoundError:
                 raise HTTPException(status_code=404, detail="address is not in the database")
 
